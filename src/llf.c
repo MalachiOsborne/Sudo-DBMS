@@ -146,6 +146,27 @@ node* update_name_by_id(node* head, char* new_name, int name_id)
     return head;
 }
 
+node* update_age_by_id(node* head, char* new_age, int age_id)
+{
+    //basically identical to update_name_by_id
+    if(head==NULL)
+        return head;
+    node* ptr=head;
+    int temp[]={99999};
+    while(ptr!=NULL)
+    {
+        if(ptr->id==age_id)
+        {
+            append_node(head,temp,ptr->name,new_age,1);
+            delete_node(head,ptr->id);
+            update_id(head,temp[0],age_id);
+            break;
+        }
+        ptr=ptr->next;
+    }
+    return head;
+}
+
 node* delete_node(node* head, int key)
 {
     if(head==NULL)
@@ -277,6 +298,39 @@ int display_entry_by_name(node* head, char* name, int entries_ids[])
     return entries_found;
 }
 
+int display_entry_by_age(node* head, char* age, int entries_ids[])
+{
+    bool found=false;
+    bool entries_found=0;
+    if(head==NULL)
+    {
+        printf("Error: No entries detected\n");
+        return -1;
+    }
+    node* ptr=head;
+    while(ptr!=NULL)
+    {
+        if(strcasecmp(ptr->age,age)==0)
+        {
+            if(entries_ids!=0)
+                entries_ids[entries_found]=ptr->id;
+            entries_found++;
+            found=true;
+            printf("id: %i",ptr->id);
+            printf(" name: %s",ptr->name);
+            printf(" age: %s\n",ptr->age);
+        }
+        ptr=ptr->next;
+    }
+    //if head is null
+    if(!found)
+    {
+        printf("Error: No entry found with age\"%s\"\n",age);
+        return -1;
+    }
+    return entries_found;
+}
+
 int generate_id(void)
 {
     if(ids_counter==0||ids[0]!=1)
@@ -391,6 +445,9 @@ void insert_options(const char* csv)
         scanf(" %3s",age_ans);
         //gotta use an array here cuz create node needs it
         //didn't need to for name and age because for some reason it works out
+
+        //the reason is passing in an array is the same as passing in the pointer
+        //to the first element 
         int generated_id[]={generate_id()};
         //the length is always 1 because i'm storing the generated id all in the
         //first element of the array
@@ -423,6 +480,12 @@ void insert_options(const char* csv)
         }
         if(more=='n')
             done=true;
+
+        //just to keep order in the .csv i'll update it quietly after inserting
+        if(!update_csv(csv,headofheads))
+        {
+            printf("Error: Couldn't update .csv file\n");
+        }
     }
 }
 void update_options(const char* csv)
@@ -458,6 +521,8 @@ void update_options(const char* csv)
             buffer is used only in case 'n'
         */
         int entries_ids[ids_counter];
+        int entries_num;
+        bool exitted=false;
         switch(update_type)
         {
             case 'i':
@@ -520,8 +585,6 @@ void update_options(const char* csv)
                 printf("Update by name\n");
                 char old_name[64];
                 char new_name[64];
-                bool exitted=false;
-                int entries_num;
                 accepted=false;
                 while(!accepted)
                 {
@@ -582,7 +645,66 @@ void update_options(const char* csv)
                 break;
             case 'a':
                 printf("Update by age\n");
-                printf("Enter age: ");
+                char old_age[4];
+                char new_age[4];
+                exitted=false;
+                accepted=false;
+                while(!accepted)
+                {
+                    printf("Enter old age(e to exit): ");
+                    scanf(" %3s",old_age);
+                    if(strcasecmp(old_name,"e")==0)
+                    {
+                        exitted=true;
+                        break;
+                    }
+                    entries_num=display_entry_by_age(headofheads,old_age,entries_ids);
+                    if(entries_num>0)
+                        accepted=true;
+                }
+                if(!exitted)
+                {
+                    int age_id;
+                    if(entries_num>1)
+                    {
+                        accepted=false;
+                        while(!accepted)
+                        {
+                            printf("Multiple entries with the same age\n");
+                            printf("Please specify which one to change\n");
+                            printf("Enter id: ");
+                            scanf(" %d",&age_id);
+                            for(int i=0;i<entries_num;i++)
+                            {
+                                if(age_id==entries_ids[i])
+                                {
+                                    accepted=true;
+                                    break;
+                                }
+                            }
+                            if(!accepted)
+                            {
+                                printf("Invalid input\n");
+                            }
+                            
+                        }
+                    }
+                    else
+                    {
+                        age_id=entries_ids[0];
+                    }
+                    printf("Enter new age: ");
+                    scanf(" %3s",new_age);
+                    update_age_by_id(headofheads,new_age,age_id);
+                }
+                if(!update_csv(csv,headofheads))
+                {
+                    printf("Error: Couldn't update .csv file\n");
+                }
+                else
+                {
+                    printf("Data updated successfully\n");
+                }
                 break;
             case 'e':
                 done=true;

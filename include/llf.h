@@ -34,6 +34,7 @@ bool unload(void);
 bool update_csv(const char* csv, node* head);
 bool display_entry_by_id(node* head, int key);
 int display_entry_by_name(node* head, char* name, int entries_ids[]);
+int display_entry_by_age(node* head, char* age, int entries_ids[]);
 node* create_node(int id[], char name[], char age[],int id_length);
 node* append_node(node* head, int id[], char name[], char age[], int id_length);
 node* insert_after_x(node* head, int key, int id[], char name[], char age[], int id_length);

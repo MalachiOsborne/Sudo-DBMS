@@ -1,10 +1,14 @@
 #include "llf.h"
+#include "windows_portability.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+//more c hocus pocus, this macro can fill in the third parameter so i wouldn't have to worry about it
+#define display_entry_by_name_search(headofheads,name) display_entry_by_name((headofheads),(name),0)
 
 //saves all the ids in there
 int ids[256];
@@ -96,6 +100,50 @@ node* insert_after_x(node* head, int key, int id[], char name[], char age[], int
 
         return head;
     }
+}
+
+node* update_id(node* head, int old_id, int new_id)
+{
+    if(head==NULL)
+        return head;
+    node* ptr=head;
+    while(ptr!=NULL)
+    {
+        if(ptr->id==old_id)
+        {
+            ptr->id=new_id;
+            break;
+        }
+        ptr=ptr->next;
+    }
+    return head;
+}
+
+node* update_name_by_id(node* head, char* new_name, int name_id)
+{
+    if(head==NULL)
+        return head;
+    node* ptr=head;
+    //temp array just to be able to pass it in `append_node()`
+    int temp[]={99999};
+    while(ptr!=NULL)
+    {
+        if(ptr->id==name_id)
+        {
+            //in case the name is longer, i'd have to malloc more so
+            //its better to just create a new one and delete the old one
+            
+            //temporarily make a node with a different id
+            append_node(head,temp,new_name,ptr->age,1);
+            //delete the node with the original id
+            delete_node(head,ptr->id);
+            //change the id of the node to the original id
+            update_id(head,temp[0],name_id);
+            break;
+        }
+        ptr=ptr->next;
+    }
+    return head;
 }
 
 node* delete_node(node* head, int key)
@@ -196,6 +244,39 @@ bool display_entry_by_id(node* head, int key)
     }
 }
 
+int display_entry_by_name(node* head, char* name, int entries_ids[])
+{
+    bool found=false;
+    bool entries_found=0;
+    if(head==NULL)
+    {
+        printf("Error: No entries detected\n");
+        return -1;
+    }
+    node* ptr=head;
+    while(ptr!=NULL)
+    {
+        if(strcasecmp(ptr->name,name)==0)
+        {
+            if(entries_ids!=0)
+                entries_ids[entries_found]=ptr->id;
+            entries_found++;
+            found=true;
+            printf("id: %i",ptr->id);
+            printf(" name: %s",ptr->name);
+            printf(" age: %s\n",ptr->age);
+        }
+        ptr=ptr->next;
+    }
+    //if head is null
+    if(!found)
+    {
+        printf("Error: No entry found with name \"%s\"\n",name);
+        return -1;
+    }
+    return entries_found;
+}
+
 int generate_id(void)
 {
     if(ids_counter==0||ids[0]!=1)
@@ -242,7 +323,7 @@ void search_options(void)
     while(!done)
     {
         printf("Search mode\n");
-        printf("Search (I)d, (A)ll, (E)xit\n");
+        printf("Search (I)d, (N)name, (A)ll, (E)xit\n");
         printf("Enter action: ");
         char search_type;
         bool accepted=false;
@@ -250,29 +331,31 @@ void search_options(void)
         {
             scanf(" %c",&search_type);
             search_type=tolower(search_type);
-            if(search_type!='i'&&search_type!='a'&&search_type!='e')
+            if(search_type!='i'&&search_type!='a'&&search_type!='n'&&search_type!='e')
             {
                 printf("Invalid input\n");
-                printf("Enter action: Search (I)d, (A)ll (E)xit: ");
+                printf("Enter action: Search (I)d, (N)ame, (A)ll (E)xit: ");
             }
             else
             {
                 accepted=true;
             }
         }
-        //this one is for the next while loop
-        accepted=false;
         int id;
+        char name[64];
         switch(search_type)
         {
             case 'i':
                 printf("Search by id\n");
-                while(!accepted)
-                {
-                    printf("Enter id: ");
-                    scanf(" %i",&id);
-                    accepted=display_entry_by_id(headofheads,id);
-                }
+                printf("Enter id: ");
+                scanf(" %i",&id);
+                display_entry_by_id(headofheads,id);
+                break;
+            case 'n':
+                printf("Search by name\n");
+                printf("Enter name: ");
+                scanf(" %63[^\n]",name);
+                display_entry_by_name_search(headofheads,name);
                 break;
             case 'a':
                 printf("Search all\n");
@@ -295,7 +378,9 @@ void insert_options(const char* csv)
         //now this is some c hocus pocus
         /*
             we're using a "scanset"
+            %[] is a scanset, putting in a condition in the square brackets
             63 is the max size it will read because we need space for `\0`
+            ^ is a negation operator
             [^\n] means it will read everything except newline
             no need for `&` again because when passing in an array, it decays
             to a pointer to the first elemnt
@@ -342,13 +427,160 @@ void insert_options(const char* csv)
 }
 void update_options(const char* csv)
 {
-    bool accepted=false;
-    while(!accepted)
+    bool done=false;
+    while(!done)
     {
-        printf("Update mode\n");
-        printf("Update (I)d, (N)ame, (A)ge, (E)xit \n");
-        printf("Enter action: ");
-        accepted=true;
+        bool accepted=false;
+        char update_type;
+        while(!accepted)
+        {
+            printf("Update mode\n");
+            printf("Update (I)d, (N)ame, (A)ge, (E)xit \n");
+            printf("Enter action: ");
+            scanf(" %c",&update_type);
+            update_type=tolower(update_type);
+            if(update_type!='i'&&update_type!='n'&&update_type!='a'&&update_type!='e')
+            {
+                printf("Invalid input\n");
+            }
+            else
+            {
+                accepted=true;
+            }
+        }
+        //false for the next while loop
+        accepted=false;
+        //buffer to hold in the ids lest there be duplicates
+        /*
+            so i have to initalize this array outside the switch statement
+            because apparently it "cannot jump to case 'a' nor 'e' because
+            it messes with the initialization" ok bro even though the
+            buffer is used only in case 'n'
+        */
+        int entries_ids[ids_counter];
+        switch(update_type)
+        {
+            case 'i':
+                printf("Update by id\n");
+                int old_id;
+                int new_id;
+                //checks if id does exist
+                while(!accepted)
+                {
+                    printf("Enter old id (0 or less to exit): ");
+                    scanf(" %i",&old_id);
+                    if(old_id<=0)
+                        break;
+                    accepted=display_entry_by_id(headofheads,old_id);
+                }
+                accepted=false;
+                //checks if new id conflicts with any other id
+                //if they exited on the previous one, i wouldn't 
+                //want to run this while loop
+                if(old_id>0)
+                {
+                    while(!accepted)
+                    {
+                        printf("Enter new id: ");
+                        scanf(" %i",&new_id);
+                        for(int i=0;i<ids_counter;i++)
+                        {
+                            if(new_id==ids[i])
+                            {
+                                printf("Error: id already exists\n");
+                                break;
+                            }
+                            accepted=true;
+                        }
+                    }
+                    if(accepted)
+                    {
+                        //updates the ids array to replace the old id with new
+                        for(int i=0;i<ids_counter;i++)
+                        {
+                            if(old_id==ids[i])
+                            {
+                                ids[i]=new_id;
+                                break;
+                            }
+                        }
+                        headofheads=update_id(headofheads,old_id,new_id);
+                        if(!update_csv(csv,headofheads))
+                        {
+                            printf("Error: Couldn't update .csv file\n");
+                        }
+                        else
+                        {
+                            printf("Data updated successfully\n");
+                        }
+                    }
+                }
+                break;
+            case 'n':
+                printf("Update by name\n");
+                char old_name[64];
+                char new_name[64];
+                bool exitted=false;
+                int entries_num;
+                accepted=false;
+                while(!accepted)
+                {
+                    printf("Enter old name (e to exit): ");
+                    scanf(" %63[^\n]",old_name);
+                    if(strcasecmp(old_name,"e")==0)
+                    {
+                        exitted=true;
+                        break;
+                    }
+                    entries_num=display_entry_by_name(headofheads,old_name,entries_ids);
+                    if(entries_num>0)
+                        accepted=true;
+                }
+                if(!exitted)
+                {
+                    int name_id;
+                    if(entries_num>1)
+                    {
+                        accepted=false;
+                        while(!accepted)
+                        {
+                            printf("Multiple entries with the same name\n");
+                            printf("Please specify which one to change\n");
+                            printf("Enter id: ");
+                            scanf(" %d",&name_id);
+                            for(int i=0;i<entries_num;i++)
+                            {
+                                if(name_id==entries_ids[i])
+                                {
+                                    accepted=true;
+                                    break;
+                                }
+                            }
+                            if(!accepted)
+                            {
+                                printf("Invalid input\n");
+                            }
+                            
+                        }
+                    }
+                    else
+                    {
+                        name_id=entries_ids[0];
+                    }
+                    printf("Enter new name: ");
+                    scanf(" %63[^\n]",new_name);
+                    update_name_by_id(headofheads,new_name,name_id);
+                }
+                update_csv(csv,headofheads);
+                break;
+            case 'a':
+                printf("Update by age\n");
+                printf("Enter age: ");
+                break;
+            case 'e':
+                done=true;
+                break;
+        }
     }
 }
 void delete_options(const char* csv)
@@ -476,6 +708,75 @@ bool load(const char* csv)
     fclose(file);
 
     loaded=true;
+    return true;
+}
+
+//we cannot update entries in place, we will need to
+//write the entire csv with the update to a new file
+//then delete the old one and rename it
+//i'm using the linked list structure to rewrite
+//the csv file
+bool update_csv(const char* csv, node* head)
+{
+    FILE* input=fopen(csv,"r");
+    FILE* temp=fopen("temp.csv","w");
+    if(temp==NULL||input==NULL)
+    {
+        printf("Error: Couldn't open file to update\n");
+        fclose(temp);
+        fclose(input);
+        return false;
+    }
+    int MAX_LINE_SIZE=128;
+    char line[MAX_LINE_SIZE];
+    //copies header
+    /*
+        fgets write a null terminator `\0` after the LAST CHAR READ
+        and NOT at the end of the buffer. 
+     */
+    if(!fgets(line,sizeof(line),input))
+    {
+        printf("Error: Couldn't read from file to update\n");
+        fclose(temp);
+        fclose(input);
+        return false;
+    }
+    fclose(input);
+    //this is why fputs never outputs garbage values that were in the buffer 
+    //when the memory was allocated
+    fputs(line,temp);
+
+    //`fprintf`ing the file in id order
+    bubble_sort(ids,ids_counter);
+    //for every id in ids
+    for(int i=0;i<ids_counter;i++)
+    {
+        //ptr to the beginning so as to not miss a node
+        node* ptr=head;
+        //goes through the linked list and then
+        //`fprintf`s the entries in id order 
+        while(ptr!=NULL)
+        {
+            if(ptr->id==ids[i])
+            {
+                fprintf(temp,"%d,%s,%s\n",ptr->id,ptr->name,ptr->age);
+                break;
+            }
+            ptr=ptr->next;
+        }
+    }
+    fclose(temp);
+    //remove and rename are from stdio.h
+    if(remove(csv)!=0)
+    {
+        printf("Error: Failed to remove old csv file\n");
+        return false;
+    }
+    if(rename("temp.csv",csv)!=0)
+    {
+        printf("Error: Failed to rename temporary csv file\n");
+        return false;
+    }
     return true;
 }
 

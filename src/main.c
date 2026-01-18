@@ -1,4 +1,5 @@
 #include "llf.h"
+#include "windows_portability.h"
 #include <ctype.h>
 #include <math.h>
 #include <stdbool.h>
@@ -26,7 +27,7 @@ int main(int argc, char** argv)
     bool done=false;
     while(!done)
     {
-        printf("(S)earch, (I)nsert, (U)pdate and (D)elete\n");
+        printf("(S)earch, (I)nsert, (U)pdate, (D)elete and (E)xit\n");
         printf("Enter action: ");
         char ans;
         bool accepted=false;

@@ -9,4 +9,9 @@
     "command": "clang -std=c11 -Iinclude -Wall -Wextra -c src/llf.c",
     "file": "src/llf.c"
   }
+  {
+    "directory": "/ABSOLUTE/PATH/TO/YOUR/PROJECT",
+    "command": "clang -std=c11 -Iinclude -Wall -Wextra -c src/dbmsf.c",
+    "file": "src/dbmsf.c"
+  }
 ]

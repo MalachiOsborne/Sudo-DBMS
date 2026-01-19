@@ -125,11 +125,11 @@ node* update_name_by_id(node* head, char* new_name, int name_id)
             //its better to just create a new one and delete the old one
             
             //temporarily make a node with a different id
-            append_node(head,temp,new_name,ptr->age,1);
+            head=append_node(head,temp,new_name,ptr->age,1);
             //delete the node with the original id
-            delete_node(head,ptr->id);
+            head=delete_node(head,ptr->id);
             //change the id of the node to the original id
-            update_id(head,temp[0],name_id);
+            head=update_id(head,temp[0],name_id);
             break;
         }
         ptr=ptr->next;
@@ -148,9 +148,9 @@ node* update_age_by_id(node* head, char* new_age, int age_id)
     {
         if(ptr->id==age_id)
         {
-            append_node(head,temp,ptr->name,new_age,1);
-            delete_node(head,ptr->id);
-            update_id(head,temp[0],age_id);
+            head=append_node(head,temp,ptr->name,new_age,1);
+            head=delete_node(head,ptr->id);
+            head=update_id(head,temp[0],age_id);
             break;
         }
         ptr=ptr->next;
@@ -194,13 +194,33 @@ node* delete_node(node* head, int key)
         {
             prev->next=temp->next;
         }
+        //first, we have to find the index where the id lives
+        int id_idx_del=-1;
+        for(int i=0;i<ids_counter-1;i++)
+        {
+            if(ids[i]==temp->id)
+            {
+                id_idx_del=i;
+            }
+        }
+        //then, we use that index to delete the value
+        //because if we have [1,2,4] and we want to delete
+        //id=4, it lives at index 2 in the array.
+
         //to delete, just replace it with the rest of the
         //array instead of making it 0
-        for(int i=temp->id;i<ids_counter-1;i++)
+        if(id_idx_del!=-1)
         {
-            ids[i]=ids[i+1];
+            for(int i=id_idx_del;i<ids_counter;i++)
+            {
+                ids[i]=ids[i+1]; 
+            }
+            ids_counter--;
         }
-        ids_counter--;
+        else
+        {
+            printf("Error: Couldn't find ID to delete node\n");
+        }
 
         free(temp->name);
         free(temp->age);
@@ -259,7 +279,7 @@ bool display_entry_by_id(node* head, int key)
 int display_entry_by_name(node* head, char* name, int entries_ids[])
 {
     bool found=false;
-    bool entries_found=0;
+    int entries_found=0;
     if(head==NULL)
     {
         printf("Error: No entries detected\n");
@@ -292,7 +312,7 @@ int display_entry_by_name(node* head, char* name, int entries_ids[])
 int display_entry_by_age(node* head, char* age, int entries_ids[])
 {
     bool found=false;
-    bool entries_found=0;
+    int entries_found=0;
     if(head==NULL)
     {
         printf("Error: No entries detected\n");

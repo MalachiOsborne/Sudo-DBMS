@@ -148,11 +148,11 @@ void update_options(const char* csv)
     bool done=false;
     while(!done)
     {
+        printf("Update mode\n");
         bool accepted=false;
         char update_type;
         while(!accepted)
         {
-            printf("Update mode\n");
             printf("Update (I)d, (N)ame, (A)ge, (E)xit \n");
             printf("Enter action: ");
             scanf(" %c",&update_type);
@@ -208,9 +208,13 @@ void update_options(const char* csv)
                             if(new_id==ids[i])
                             {
                                 printf("Error: ID already exists\n");
+                                accepted=false;
                                 break;
                             }
-                            accepted=true;
+                            else
+                            {
+                                accepted=true;
+                            }
                         }
                     }
                     if(accepted)
@@ -252,7 +256,6 @@ void update_options(const char* csv)
                         break;
                     }
                     entries_num=display_entry_by_name(headofheads,old_name,entries_ids);
-                    printf("Entries num: %d\n", entries_num); 
                     if(entries_num>0)
                         accepted=true;
                 }
@@ -289,15 +292,15 @@ void update_options(const char* csv)
                     }
                     printf("Enter new name: ");
                     scanf(" %63[^\n]",new_name);
-                    update_name_by_id(headofheads,new_name,name_id);
-                }
-                if(!update_csv(csv,headofheads))
-                {
-                    printf("Error: Couldn't update .csv file\n");
-                }
-                else
-                {
-                    printf("Data updated successfully\n");
+                    headofheads=update_name_by_id(headofheads,new_name,name_id);
+                    if(!update_csv(csv,headofheads))
+                    {
+                        printf("Error: Couldn't update .csv file\n");
+                    }
+                    else
+                    {
+                        printf("Data updated successfully\n");
+                    }
                 }
                 break;
             case 'a':
@@ -317,7 +320,6 @@ void update_options(const char* csv)
                         break;
                     }
                     entries_num=display_entry_by_age(headofheads,old_age,entries_ids);
-                    printf("Entries num: %d",entries_num);
                     if(entries_num>0)
                         accepted=true;
                 }
@@ -354,7 +356,7 @@ void update_options(const char* csv)
                     }
                     printf("Enter new age: ");
                     scanf(" %3s",new_age);
-                    update_age_by_id(headofheads,new_age,age_id);
+                    headofheads=update_age_by_id(headofheads,new_age,age_id);
                     if(!update_csv(csv,headofheads))
                     {
                         printf("Error: Couldn't update .csv file\n");
@@ -374,9 +376,9 @@ void update_options(const char* csv)
 void delete_options(const char* csv)
 {
     bool done=false;
-    printf("Delete mode\n");
     while(!done)
     {
+        printf("Delete mode\n");
         char delete_type;
         bool accepted=false;
         while(!accepted)
@@ -441,7 +443,7 @@ void delete_options(const char* csv)
                                 break;
                         }
                     }
-                    delete_node(headofheads,delete_id);
+                    headofheads=delete_node(headofheads,delete_id);
                     if(!update_csv(csv,headofheads))
                     {
                         printf("Error: Couldn't update .csv file for deletion\n");

@@ -8,7 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-/*
 int main(int argc, char** argv)
 {
     if(argc<2 || argc>2)
@@ -35,12 +34,14 @@ int main(int argc, char** argv)
         bool accepted=false;
         while(!accepted)
         {
+            /*
                 the space before the `%c` is actually very crucial because it "eats
                 any newline characters that the user enters when they enter a wrong
                 letter.
                 when u type in "r" its actually "r\n" which scanf reads but it only
                 putts the "r" in the ans because that's how large the buffer is and
                 leaves the "\n" to the next scanf
+            */
             scanf(" %c",&ans);
             ans=tolower(ans);
             //use && because if u want to use || it would be == instead of !=
@@ -80,16 +81,20 @@ int main(int argc, char** argv)
 
     return 0;
 }
-*/
+/*
 int main(void)
 {
     int id[]={1};
     int id2[]={2};
+    int id3[]={3};
     int entr[5];
     node* head=create_node(id, "abbas","18" ,1);
     head=append_node(head, id2, "abbas","18" ,1);
+    head=append_node(head, id3, "abbas","18" ,1);
     display_list(head);
-    int num=    display_entry_by_age(head, "18", entr);
+    printf("\n");
+    int num=display_entry_by_age(head, "18", entr);
     printf("Entries num %d",num);
     return 0;
 }
+*/

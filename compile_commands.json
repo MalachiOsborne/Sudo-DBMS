@@ -1,0 +1,12 @@
+[
+  {
+    "directory": "/ABSOLUTE/PATH/TO/YOUR/PROJECT",
+    "command": "clang -std=c11 -Iinclude -Wall -Wextra -c src/main.c",
+    "file": "src/main.c"
+  },
+  {
+    "directory": "/ABSOLUTE/PATH/TO/YOUR/PROJECT",
+    "command": "clang -std=c11 -Iinclude -Wall -Wextra -c src/llf.c",
+    "file": "src/llf.c"
+  }
+]

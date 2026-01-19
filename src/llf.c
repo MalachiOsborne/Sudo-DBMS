@@ -258,7 +258,7 @@ bool display_entry_by_id(node* head, int key)
     }
     else
     {
-        printf("id: %i",ptr->id);
+        printf("ID: %i",ptr->id);
         printf(" name: %s",ptr->name);
         printf(" age: %s\n",ptr->age);
         return true;
@@ -283,7 +283,7 @@ int display_entry_by_name(node* head, char* name, int entries_ids[])
                 entries_ids[entries_found]=ptr->id;
             entries_found++;
             found=true;
-            printf("id: %i",ptr->id);
+            printf("ID: %i",ptr->id);
             printf(" name: %s",ptr->name);
             printf(" age: %s\n",ptr->age);
         }
@@ -316,7 +316,7 @@ int display_entry_by_age(node* head, char* age, int entries_ids[])
                 entries_ids[entries_found]=ptr->id;
             entries_found++;
             found=true;
-            printf("id: %i",ptr->id);
+            printf("ID: %i",ptr->id);
             printf(" name: %s",ptr->name);
             printf(" age: %s\n",ptr->age);
         }
@@ -325,7 +325,7 @@ int display_entry_by_age(node* head, char* age, int entries_ids[])
     //if head is null
     if(!found)
     {
-        printf("Error: No entry found with age\"%s\"\n",age);
+        printf("Error: No entry found with age \"%s\"\n",age);
         return -1;
     }
     return entries_found;
@@ -351,7 +351,7 @@ void display_list(node* head)
     while(temp!=NULL)
     {
         printf("%i)",current_id);
-        printf(" id: %i",temp->id);
+        printf(" ID: %i",temp->id);
         printf(" name: %s",temp->name);
         printf(" age: %s\n",temp->age);
         current_id++;
@@ -400,8 +400,8 @@ void search_options(void)
         switch(search_type)
         {
             case 'i':
-                printf("Search by id\n");
-                printf("Enter id: ");
+                printf("Search by ID\n");
+                printf("Enter ID: ");
                 scanf(" %i",&id);
                 display_entry_by_id(headofheads,id);
                 break;
@@ -526,13 +526,13 @@ void update_options(const char* csv)
         switch(update_type)
         {
             case 'i':
-                printf("Update by id\n");
+                printf("Update by ID\n");
                 int old_id;
                 int new_id;
                 //checks if id does exist
                 while(!accepted)
                 {
-                    printf("Enter old id (0 or less to exit): ");
+                    printf("Enter old ID (0 or less to exit): ");
                     scanf(" %i",&old_id);
                     if(old_id<=0)
                         break;
@@ -546,13 +546,13 @@ void update_options(const char* csv)
                 {
                     while(!accepted)
                     {
-                        printf("Enter new id: ");
+                        printf("Enter new ID: ");
                         scanf(" %i",&new_id);
                         for(int i=0;i<ids_counter;i++)
                         {
                             if(new_id==ids[i])
                             {
-                                printf("Error: id already exists\n");
+                                printf("Error: ID already exists\n");
                                 break;
                             }
                             accepted=true;
@@ -572,7 +572,7 @@ void update_options(const char* csv)
                         headofheads=update_id(headofheads,old_id,new_id);
                         if(!update_csv(csv,headofheads))
                         {
-                            printf("Error: Couldn't update .csv file\n");
+                            printf("Error: Couldn't update .csv file for insertion\n");
                         }
                         else
                         {
@@ -609,7 +609,7 @@ void update_options(const char* csv)
                         {
                             printf("Multiple entries with the same name\n");
                             printf("Please specify which one to change\n");
-                            printf("Enter id: ");
+                            printf("Enter ID: ");
                             scanf(" %d",&name_id);
                             for(int i=0;i<entries_num;i++)
                             {
@@ -672,7 +672,7 @@ void update_options(const char* csv)
                         {
                             printf("Multiple entries with the same age\n");
                             printf("Please specify which one to change\n");
-                            printf("Enter id: ");
+                            printf("Enter ID: ");
                             scanf(" %d",&age_id);
                             for(int i=0;i<entries_num;i++)
                             {
@@ -714,13 +714,93 @@ void update_options(const char* csv)
 }
 void delete_options(const char* csv)
 {
+    bool done=false;
     printf("Delete mode\n");
-    printf("Delete by (I)d, (N)ame, (A)ge, (E)xit\n");
-    bool accepted=false;
-    while(!accepted)
+    while(!done)
     {
-        printf("Enter action: ");
-        accepted=true;
+        char delete_type;
+        bool accepted=false;
+        while(!accepted)
+        {
+            printf("Delete by (I)D, (N)ame, (A)ge, (E)xit\n");
+            printf("Enter action: ");
+            scanf(" %c",&delete_type);
+            delete_type=tolower(delete_type);
+            if(delete_type!='i'&&delete_type!='n'&&delete_type!='a'&&delete_type!='e')
+            {
+                printf("Invalid Input\n");
+            }
+            else
+            {
+                accepted=true;
+            }
+        }
+        int delete_id;
+        switch(delete_type)
+        {
+            case 'i':
+                accepted=false;
+                while(!accepted)
+                {
+                    printf("Delete by ID\n");
+                    printf("Enter ID (0 or less to exit): ");
+                    //more c hocus pocus
+                    /*
+                        the asterisk '*' in a scanset means read but don't store, effectively ignoring the formatted scanset
+                        [] scanset again
+                        ^ means not
+                        \\ is the literal "\" character and the first `\` is the special escape character
+                        %*c just reads the last newline character and doesn't store it
+
+                        %*[^\\n]%*c
+                     */
+                    scanf(" %i",&delete_id);
+                    if(delete_id<=0)
+                        break;
+                    accepted=display_entry_by_id(headofheads,delete_id);
+                }
+                accepted=false;
+                if(delete_id>0)
+                {
+                    while(!accepted)
+                    {
+                        char sure;
+                        printf("Are you sure? Y/n: ");
+                        scanf(" %c",&sure);
+                        sure=tolower(sure);
+                        switch(sure)
+                        {
+                            case 'y':
+                                accepted=true;
+                                break;
+                            case 'n':
+                                delete_id=0;
+                                accepted=true;
+                                break;
+                            default:
+                                printf("Invalid input\n");
+                                break;
+                        }
+                    }
+                    delete_node(headofheads,delete_id);
+                    if(!update_csv(csv,headofheads))
+                    {
+                        printf("Error: Couldn't update .csv file for deletion\n");
+                    }
+                    else
+                    {
+                        printf("Data deleted successfully\n");
+                    }
+                }
+                break;
+            case 'n':
+                break;
+            case 'a':
+                break;
+            case 'e':
+                done=true;
+                break;
+        }
     }
 }
 
